@@ -1,4 +1,6 @@
 let worker = null;
+
+
 async function initWorker() {
     if (worker) return worker;
     try {
@@ -20,6 +22,7 @@ async function initWorker() {
     }
 }
 
+
 async function terminateWorker() {
     if (worker) {
         await worker.terminate();
@@ -27,6 +30,7 @@ async function terminateWorker() {
     }
 }
 
+// Extract text from image
 async function recognizeText(file) {
     try {
         const w = await initWorker();
@@ -38,22 +42,27 @@ async function recognizeText(file) {
     }
 }
 
+// Find and parse the first valid date in text
 function findFirstDateInText(text) {
     if (!text) return null;
     
-text = text
-        .replace(/\u00A0/g, ' ')
-        .replace(/[|!lI]/g, '1')
-        .replace(/[oO]/g, '0')
-        .replace(/(\d)\s+(?=\d)/g, '$1')
-        .replace(/[^\w\s\d\/\-\.]/g, ' ')
+    // Normalize text: remove excess spaces, convert common OCR errors
+    text = text
+        .replace(/\u00A0/g, ' ')              
+        .replace(/[|!lI]/g, '1')              
+        .replace(/[oO]/g, '0')                
+        .replace(/(\d)\s+(?=\d)/g, '$1')      // remove spaces between digits
+        .replace(/[^\w\s\d\/\-\.]/g, ' ')     // keep only word chars, spaces, digits, and date separators
         .trim();
 
-        const patterns = [
-            /\b(20\d{2})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})\b/,
-            /\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](?:20)?(\d{2})\b/,
+    // Date patterns
+    const patterns = [
         
-        // Text month (Oct 28, 2023 or October 28 2023)
+            /\b(20\d{2})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})\b/,
+        
+          
+            /\b(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](?:20)?(\d{2})\b/,
+
         /\b(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)[,\s]+(\d{1,2})(?:st|nd|rd|th)?[,\s]+(?:20)?(\d{2})\b/i
     ];
 
@@ -67,23 +76,17 @@ text = text
             if (matches[0].includes('/') || matches[0].includes('-') || matches[0].includes('.')) {
                 // Numeric date parts
                 if (matches[1].length === 4) {
-                    // ISO format
+     
                     [, year, month, day] = matches;
                 } else {
-                    // MM/DD/YY or DD/MM/YY
+                 
                     const [a, b, y] = matches.slice(1);
                     year = y.length === 2 ? '20' + y : y;
-                    // Try both DMY and MDY order
-                    if (parseInt(a) > 12) {
-                        // First number > 12, assume DD/MM
-                        [day, month] = [a, b];
-                    } else {
-                        // Assume MM/DD (US format)
-                        [month, day] = [a, b];
-                    }
+                    
+                    [day, month] = [a, b];
                 }
             } else {
-                // Text month format
+              
                 const monthMap = {
                     jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6,
                     jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12
@@ -94,20 +97,20 @@ text = text
                     year = year.length === 2 ? '20' + year : year;
             }
 
-            // Validate and create date
+
             year = parseInt(year);
             month = parseInt(month);
             day = parseInt(day);
 
-            if (year < 2000 || year > 2100) continue;  // sanity check year
+            if (year < 2000 || year > 2100) continue;  
             if (month < 1 || month > 12) continue;
             if (day < 1 || day > 31) continue;
 
-            // Check if date is valid (handles month lengths and leap years)
+        
             const date = new Date(year, month - 1, day);
-            if (date.getMonth() !== month - 1) continue; // invalid date like 2023-02-31
+            if (date.getMonth() !== month - 1) continue; 
 
-            // Format as YYYY-MM-DD for input
+        
             return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         } catch (e) {
             console.warn('Date parse failed:', e);
@@ -128,7 +131,7 @@ async function handleReceiptFile(file) {
 
     try {
         const text = await recognizeText(file);
-        console.log('Extracted text:', text); // helps with debugging
+        console.log('Extracted text:', text);
         console.log('Looking for dates and warranty period...');
 
         if (!text || text.trim().length === 0) {
@@ -140,7 +143,7 @@ async function handleReceiptFile(file) {
             throw new Error('No valid date found in the receipt. Try a clearer photo or enter the date manually.');
         }
 
-        // Look for warranty duration in various formats
+  
         let duration = null;
         
         // Pattern 1: Date range (from X to Y)
@@ -220,7 +223,6 @@ async function handleReceiptFile(file) {
         
         console.log('Duration patterns checked, found:', duration, 'months');
 
-        // Fill both main form and edit modal inputs if present
         const mainDateInput = document.getElementById('purchase-date');
         const editDateInput = document.getElementById('purchase-date-edit');
         const mainDurationInput = document.getElementById('warranty-duration');
