@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <h1>My Warranty Organizer</h1>
+
+  <div id="notifications" class="notifications" aria-live="polite"></div>
+
+    <div class="controls">
+      <div class="notif-bell-wrap">
+        <button id="notif-bell" class="btn-secondary" aria-label="Notifications">
+          <img src="bell.png" alt="Notifications" width="20" height="20" style="vertical-align:middle;" />
+          <span id="notif-count" class="badge" aria-hidden="true"></span>
+        </button>
+        <div id="notif-panel" class="notif-panel" hidden>
+          <div class="notif-panel-header">
+            <strong>Notifications</strong>
+            <button id="notif-panel-close" class="close-small" aria-label="Close">×</button>
+          </div>
+          <div id="notif-list" class="notif-list"></div>
+        </div>
+      </div>
+      <button id="export-btn" class="btn-secondary">Export JSON</button>
+      <label for="import-file" class="btn-secondary" id="import-label">Import JSON</label>
+      <input type="file" id="import-file" accept="application/json" style="display:none" />
+      <button id="clear-btn" class="btn-secondary">Clear All</button>
+    </div>
+
+    <form id="warranty-form" class="card">
+  <div class="form-row">
+    <label for="product-name">Product Name</label>
+    <input type="text" id="product-name" required placeholder="e.g., Blender Model X" />
+  </div>
+
+  <div class="form-row">
+    <label for="purchase-date">Purchase Date</label>
+    <input type="date" id="purchase-date" required />
+  </div>
+
+  <div class="form-row">
+    <label for="warranty-duration">Warranty Duration (months)</label>
+    <input type="number" id="warranty-duration" required min="1" placeholder="12" />
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" id="add-warranty">Add Warranty</button>
+  </div>
+</form>
+
+<section class="card">
+  <h2>Saved Warranties</h2>
+  <div class="table-wrap">
+    <table id="warranty-table" aria-label="Warranty list">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Expiry Date</th>
+          <th>Days Remaining</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows injected by script -->
+      </tbody>
+    </table>
+  </div>
+</section>
+  </main>
+<script src="script.js"></script>
+</body>
+</html>
+
+
